@@ -69,12 +69,23 @@ function interpolate(A, B) {
 
 var tools = {
 
-    Fill: function(target) {
-        getNeighbors(target).forEach(tools.Pencil);
-    },
-
     Pencil: function(target) {
         target.style.backgroundColor = color.value;
+    },
+
+    Fill: function(target) {
+        var sourceColor = target.style.backgroundColor,
+            seen = new Set();
+
+        function recurse(target) {
+            if (target.style.backgroundColor==sourceColor&&!seen.has(target)) {
+                seen.add(target);
+                tools.Pencil(target);
+                getNeighbors(target).forEach(recurse);
+            }
+        }
+
+        recurse(target);
     },
 
     Eraser: function(target) {
@@ -173,7 +184,7 @@ function listenMouse() {
 
 window.onload = function() {
     createToolbar();
-    createCanvas(80, 60);
+    createCanvas(60, 60);
     listenMouse();
 }
 </script>
