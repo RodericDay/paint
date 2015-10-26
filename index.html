@@ -69,14 +69,30 @@ function interpolate(A, B) {
 
 var tools = {
 
+    Fill: function(target) {
+        getNeighbors(target).forEach(tools.Pencil);
+    },
+
     Pencil: function(target) {
         target.style.backgroundColor = color.value;
     },
 
     Eraser: function(target) {
         target.style.backgroundColor = "white";
+    },
+
+}
+
+function getNeighbors(pixel) {
+    function shift(dx, dy) {
+        var x = Math.floor(pixel.dataset.x)+dx,
+            y = Math.floor(pixel.dataset.y)+dy;
+        return document.getElementById("px-"+x+'-'+y)
     }
 
+    return [[-1, 0], [ 1, 0], [ 0,-1], [ 0, 1]]
+        .map(function(offset) { return shift.apply(this, offset) })
+        .filter(function(el){return el})
 }
 
 function newElement(className) {
