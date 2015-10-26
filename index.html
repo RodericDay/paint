@@ -1,0 +1,158 @@
+<meta charset="utf-8">
+<title>Paint!</title>
+
+<style>
+* {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+}
+.toolbar {
+    display: block;
+}
+.button {
+    vertical-align: center;
+    text-align: center;
+    width: 50px;
+    display: inline-block;
+    border: 1px solid black;
+}
+.selected {
+    background-color: gray;
+}
+.canvas {
+    position: relative;
+    display: block;
+    border: 2px solid black;
+}
+.pixel {
+    position: absolute;
+    outline: 1px solid gray;
+}
+#palette {
+    position: fixed;
+    z-index: 99;
+}
+#palette:hover {
+    width: 954px;
+    height: 483px;
+    background-image: url("http://cdn.arstechnica.net/wp-content/uploads/2015/10/Screen-Shot-2015-10-11-at-3.47.29-PM.png");
+}
+</style>
+
+<body>
+<h1>Paint!</h1>
+<input id="color" value="black" />
+<a id="palette" href="http://arstechnica.com/information-technology/2015/10/tomato-versus-ff6347-the-tragicomic-history-of-css-color-names/">?</a>
+</body>
+
+<script> "use strict"
+var PX_SIZE = 10;
+
+function interpolate(A, B) {
+    var points = [B],
+        dx = B[0] - A[0],
+        dy = B[1] - A[1],
+        distance = Math.sqrt(dx*dx + dy*dy),
+        angle = Math.atan2(dy, dx),
+        steps = Math.floor(distance/PX_SIZE);
+
+    for (var i=1; i<=steps; i++) {
+        var x = B[0] - i * PX_SIZE * Math.cos(angle),
+            y = B[1] - i * PX_SIZE * Math.sin(angle);
+        points.push([x, y]);
+    }
+
+    return points
+}
+
+var tools = {
+
+    Pencil: function(target) {
+        target.style.backgroundColor = color.value;
+    },
+
+}
+
+function newElement(className) {
+    var el = document.createElement("div");
+    el.className = className;
+    return el
+}
+
+function nodeArray(className) {
+    var nodeList = document.getElementsByClassName(className);
+    return Array.prototype.slice.call(nodeList)
+}
+
+function selectTool(tool) {
+    nodeArray("tool button").forEach(function(el){
+        if (el.innerHTML==tool) {
+            el.classList.add("selected");
+        } else {
+            el.classList.remove("selected");
+        }
+    });
+}
+
+var lastPos = null;
+function applyTool(ev) {
+    var pos = [ev.clientX, ev.clientY];
+
+    if (ev.buttons===1) {
+        var _ = interpolate(lastPos||pos, pos)
+            .map(function(p){return document.elementFromPoint.apply(document, p)})
+            .filter(function(el){return el&&el.classList.contains("pixel")})
+            .forEach(tools.Pencil);
+    }
+
+    lastPos = pos;
+    color.focus();
+}
+
+function createToolbar() {
+    var toolbar = newElement("toolbar");
+    Object.keys(tools).forEach(function(tool){
+        var button = newElement("tool button");
+        button.innerHTML = tool;
+        button.onclick = function() { selectTool(tool); }
+        toolbar.appendChild(button);
+    });
+    toolbar.firstChild.classList.add("selected");
+    document.body.appendChild(toolbar);
+}
+
+function createCanvas(nx, ny) {
+    var canvas = newElement("canvas");
+    for (var x=0;x<nx;x++) {
+        for (var y=0;y<ny;y++) {
+            var pixel = newElement("pixel");
+            pixel.id = "px-"+x+"-"+y;
+            pixel.style.height = PX_SIZE;
+            pixel.style.width = PX_SIZE;
+            pixel.style.left = PX_SIZE*x;
+            pixel.style.top = PX_SIZE*y;
+            pixel.style.backgroundColor = "white";
+            pixel.dataset.x = x;
+            pixel.dataset.y = y;
+            canvas.appendChild(pixel);
+        }
+    }
+    canvas.style.width = PX_SIZE*nx;
+    canvas.style.height = PX_SIZE*ny;
+    document.body.appendChild(canvas)
+}
+
+function listenMouse() {
+    window.onmouseup = applyTool;
+    window.onmousedown = applyTool;
+    window.onmousemove = applyTool;
+}
+
+window.onload = function() {
+    createToolbar();
+    createCanvas(80, 60);
+    listenMouse();
+}
+</script>
