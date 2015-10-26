@@ -73,6 +73,10 @@ var tools = {
         target.style.backgroundColor = color.value;
     },
 
+    Eraser: function(target) {
+        target.style.backgroundColor = "white";
+    }
+
 }
 
 function newElement(className) {
@@ -98,13 +102,14 @@ function selectTool(tool) {
 
 var lastPos = null;
 function applyTool(ev) {
-    var pos = [ev.clientX, ev.clientY];
+    var pos = [ev.clientX, ev.clientY],
+        toolName = document.querySelector(".tool.selected").innerHTML;
 
     if (ev.buttons===1) {
         var _ = interpolate(lastPos||pos, pos)
             .map(function(p){return document.elementFromPoint.apply(document, p)})
             .filter(function(el){return el&&el.classList.contains("pixel")})
-            .forEach(tools.Pencil);
+            .forEach(tools[toolName]);
     }
 
     lastPos = pos;
