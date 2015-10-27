@@ -94,6 +94,20 @@ var tools = {
 
 }
 
+/*
+* a weird experiment to switch tools without leaving home
+* or memorizing shortcuts
+*/
+var scroll = 0
+function switchTool(ev) {
+    scroll += Math.sign(ev.detail); // other browsers v different
+    scroll %= 100;
+    if (scroll<0) { scroll+= 100 }
+    var keys = Object.keys(tools);
+    var index = Math.floor(keys.length * scroll/100);
+    selectTool(keys[index]);
+}
+
 function getNeighbors(pixel) {
     function shift(dx, dy) {
         var x = Math.floor(pixel.dataset.x)+dx,
@@ -180,6 +194,7 @@ function listenMouse() {
     window.onmouseup = applyTool;
     window.onmousedown = applyTool;
     window.onmousemove = applyTool;
+    window.addEventListener("DOMMouseScroll", switchTool, false);
 }
 
 window.onload = function() {
